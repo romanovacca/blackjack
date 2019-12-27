@@ -72,12 +72,9 @@ class BlackjackEnv(gym.Env):
             spaces.Discrete(11),
             spaces.Discrete(2)))
         self.seed()
-
-        # Flag to payout 1.5 on a "natural" blackjack win, like casino rules
-        # Ref: http://www.bicyclecards.com/how-to-play/blackjack/
         self.natural = natural
         # Start the first game
-        self.reset()
+        #self.reset()
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -103,11 +100,15 @@ class BlackjackEnv(gym.Env):
         return self._get_obs(), reward, done, {}
 
     def _get_obs(self):
+        "This makes sure that the player only knows the first card the dealer has."
+
         return (sum_hand(self.player), self.dealer[0], usable_ace(self.player))
 
     def reset(self):
-        self.dealer = draw_hand(self.np_random)
-        self.player = draw_hand(self.np_random)
+        self.player = [draw_card(self.np_random)]
+        self.dealer = [draw_card(self.np_random)]
+        self.player.append(draw_card(self.np_random))
+        self.dealer.append(draw_card(self.np_random))
         return self.readable_observation()
 
     def readable_observation(self):
