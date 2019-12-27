@@ -1,15 +1,16 @@
 from Environment import BlackjackEnv
+from Logging.Logger import Customlogger
+
+logger = Customlogger(__name__)
 env = BlackjackEnv()
 
 for i_episode in range(20):
-    player_hand,dealer_hand,has_usable_ace = env.reset()
+    player_hand,dealer_hand = env.reset()
     for t in range(100):
-        print(f"Player hand is {player_hand}, the dealer has: {dealer_hand}, "
-              f"and the player has usable ace is {has_usable_ace}")
-        action = env.action_space.sample()
-        observation, reward, done, info = env.step(action)
+        action = env.take_action()
+        observation, done, info = env.step(action)
         if done:
-            print("Episode finished after {} timesteps".format(t+1))
+            logger.log_message(f"Episode finished after {t+1} timesteps\n")
             break
 env.close()
 

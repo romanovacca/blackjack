@@ -1,6 +1,8 @@
 import gym
 from gym import spaces
 from gym.utils import seeding
+from Logging.Logger import Customlogger
+
 
 def cmp(a, b):
     return float(a > b) - float(a < b)
@@ -66,6 +68,8 @@ class BlackjackEnv(gym.Env):
     http://incompleteideas.net/book/the-book-2nd.html
     """
     def __init__(self, natural=False):
+        self.logger = Customlogger(__name__)
+        self.logger.log_message("Setting up the BlackJack environment.\n")
         self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Tuple((
             spaces.Discrete(32),
@@ -73,8 +77,6 @@ class BlackjackEnv(gym.Env):
             spaces.Discrete(2)))
         self.seed()
         self.natural = natural
-        # Start the first game
-        #self.reset()
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -84,6 +86,8 @@ class BlackjackEnv(gym.Env):
         assert self.action_space.contains(action)
         if action:  # hit: add a card to players hand and return
             self.player.append(draw_card(self.np_random))
+            self.logger.log_message(f"Player hits an {self.player[-1]}")
+            self.logger.log_message(f"Player new total: {sum(self.player)}")
             if is_bust(self.player):
                 done = True
                 reward = -1
@@ -92,12 +96,30 @@ class BlackjackEnv(gym.Env):
                 reward = 0
         else:  # stick: play out the dealers hand, and score
             done = True
+            self.logger.log_message(f"Dealer hits an {self.dealer[-1]}")
+            self.logger.log_message(f"Dealer new total: {sum(self.dealer)}")
             while sum_hand(self.dealer) < 17:
                 self.dealer.append(draw_card(self.np_random))
+                self.logger.log_message(f"Dealer hits an {self.dealer[-1]}")
+                self.logger.log_message(f"Dealer new total: {sum(self.dealer)}")
             reward = cmp(score(self.player), score(self.dealer))
             if self.natural and is_natural(self.player) and reward == 1:
                 reward = 1.5
-        return self._get_obs(), reward, done, {}
+
+        if done == True:
+            self.calculate_reward(reward)
+
+        return self._get_obs(), done, {}
+
+    def calculate_reward(self,reward):
+        #TODO: Check if logic makes sense
+        if reward == 0:
+            self.logger.log_message("DRAW")
+        elif reward == 1 or reward == 1.5:
+            self.logger.log_message("WIN")
+        elif reward == -1:
+            self.logger.log_message("LOSE")
+
 
     def _get_obs(self):
         "This makes sure that the player only knows the first card the dealer has."
@@ -109,8 +131,26 @@ class BlackjackEnv(gym.Env):
         self.dealer = [draw_card(self.np_random)]
         self.player.append(draw_card(self.np_random))
         self.dealer.append(draw_card(self.np_random))
+        self.logger.log_message(f"Player: {self.player} -> {sum(self.player)}")
+        self.logger.log_message(f"Dealer: {self.dealer[0]}")
+        self.logger.log_message(f"Player has a usable Ace is: {usable_ace(self.player)}")
+
         return self.readable_observation()
 
     def readable_observation(self):
         player_hand,dealer_hand,has_usable_ace = self._get_obs()
-        return player_hand,dealer_hand,has_usable_ace
+        return player_hand,dealer_hand
+
+    def take_action(self):
+        action = self.action_space.sample()
+        return self.translate_action(action)
+
+    def translate_action(self,action):
+        if action == 0:
+            self.logger.log_message("The player doesn't draw another card.")
+            return 0
+        elif action == 1:
+            self.logger.log_message("The player hits another card. ")
+            return 1
+        else:
+            raise NotImplementedError
