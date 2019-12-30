@@ -2,6 +2,7 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 from Logging.Logger import Customlogger
+from src.Cards import Cards
 
 
 def cmp(a, b):
@@ -10,13 +11,14 @@ def cmp(a, b):
 
 # 1 = Ace, 2-10 = Number cards, Jack/Queen/King = 10
 deck = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]
+cards = Cards()
 
 
-def draw_card(np_random):
-    return int(np_random.choice(deck))
+# def draw_card():
+#     # return int(np_random.choice(deck))
+#     return cards.draw()
 
-
-def draw_hand(np_random):
+def draw_hand():
     return [draw_card(np_random), draw_card(np_random)]
 
 
@@ -85,7 +87,7 @@ class BlackjackEnv(gym.Env):
     def step(self, action):
         assert self.action_space.contains(action)
         if action:  # hit: add a card to players hand and return
-            self.player.append(draw_card(self.np_random))
+            self.player.append(cards.draw())
             self.logger.log_message(f"Player hits an {self.player[-1]}")
             self.logger.log_message(f"Player new total: {sum(self.player)}")
             if is_bust(self.player):
@@ -96,10 +98,11 @@ class BlackjackEnv(gym.Env):
                 reward = 0
         else:  # stick: play out the dealers hand, and score
             done = True
+            self.dealer.append(cards.flip_folded())
             self.logger.log_message(f"Dealer hits an {self.dealer[-1]}")
             self.logger.log_message(f"Dealer new total: {sum(self.dealer)}")
             while sum_hand(self.dealer) < 17:
-                self.dealer.append(draw_card(self.np_random))
+                self.dealer.append(cards.draw())
                 self.logger.log_message(f"Dealer hits an {self.dealer[-1]}")
                 self.logger.log_message(f"Dealer new total: {sum(self.dealer)}")
             reward = cmp(score(self.player), score(self.dealer))
@@ -127,10 +130,10 @@ class BlackjackEnv(gym.Env):
         return (sum_hand(self.player), self.dealer[0], usable_ace(self.player))
 
     def reset(self):
-        self.player = [draw_card(self.np_random)]
-        self.dealer = [draw_card(self.np_random)]
-        self.player.append(draw_card(self.np_random))
-        self.dealer.append(draw_card(self.np_random))
+        self.player = [cards.draw()]
+        self.dealer = [cards.draw()]
+        self.player.append(cards.draw())
+        cards.blind_bank()
         self.logger.log_message(f"Player: {self.player} -> {sum(self.player)}")
         self.logger.log_message(f"Dealer: {self.dealer[0]}")
         self.logger.log_message(f"Player has a usable Ace is: {usable_ace(self.player)}")
