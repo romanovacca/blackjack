@@ -1,4 +1,4 @@
-from Environment import BlackjackEnv
+from src.Environment import BlackjackEnv
 from Logging.Logger import Customlogger
 
 logger = Customlogger(__name__)
