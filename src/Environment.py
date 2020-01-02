@@ -84,6 +84,9 @@ class BlackjackEnv(gym.Env):
             if is_bust(self.player):
                 done = True
                 reward = -1
+                self.logger.log_message(f"Dealer had:[{self.dealer[-1]}"
+                                        f",{self.cards.hidden_dealer_card}]"
+                                        f" {sum(self.dealer) + self.cards.hidden_dealer_card}")
             else:
                 done = False
                 reward = 0
@@ -109,11 +112,11 @@ class BlackjackEnv(gym.Env):
     def calculate_reward(self,reward):
         #TODO: Check if logic makes sense
         if reward == 0:
-            self.logger.log_message("DRAW\n")
+            self.logger.log_message("DRAW")
         elif reward == 1 or reward == 1.5:
-            self.logger.log_message("WIN\n")
+            self.logger.log_message("WIN")
         elif reward == -1:
-            self.logger.log_message("LOSE\n")
+            self.logger.log_message("LOSE")
 
 
     def reset(self):

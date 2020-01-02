@@ -70,8 +70,9 @@ class Cards(object):
         2 - 6 = +1
         7 - 9 = 0
         10 - Ace = -1
-        :return:
-        :rtype:
+
+        The higher the running count is, the more 'faces' are still in the deck
+        which is advantages for the player.
         """
         if card == 'Q':
             card = 10
@@ -93,4 +94,9 @@ class Cards(object):
         return
 
     def calculate_true_count(self):
+        """https://www.countingedge.com/card-counting/true-count/
+        In a 6 shoe deck, each additional true count point gives the player a
+        0,5 advantage. So when the true count is 1, you have even odds with the
+        dealer.
+        """
         self.true_count = self.running_count / (len(self.pile)/52)

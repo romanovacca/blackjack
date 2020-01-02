@@ -13,6 +13,8 @@ for i_episode in range(50):
             action = 0
         observation, done, info = env.step(action)
         if done:
+            logger.log_message(f"Running count:{env.cards.running_count}")
+            logger.log_message(f"Running count:{env.cards.true_count}\n")
             break
 env.close()
 
