@@ -10,17 +10,7 @@ def cmp(a, b):
 
 
 # 1 = Ace, 2-10 = Number cards, Jack/Queen/King = 10
-deck = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]
-cards = Cards()
-
-
-# def draw_card():
-#     # return int(np_random.choice(deck))
-#     return cards.draw()
-
-def draw_hand():
-    return [draw_card(np_random), draw_card(np_random)]
-
+# deck = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]
 
 def usable_ace(hand):  # Does this hand have a usable ace?
     return 1 in hand and sum(hand) + 10 <= 21
@@ -41,7 +31,7 @@ def score(hand):  # What is the score of this hand (0 if bust)
 
 
 def is_natural(hand):  # Is this hand a natural blackjack?
-    return sorted(hand) == [1, 10]
+    return sorted(hand) == [1, 10] or sorted(hand) == [1, 11] or sorted(hand)== [1, 12] or sorted(hand) == [1, 10]
 
 
 class BlackjackEnv(gym.Env):
@@ -79,6 +69,7 @@ class BlackjackEnv(gym.Env):
             spaces.Discrete(2)))
         self.seed()
         self.natural = natural
+        self.cards = Cards()
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -87,7 +78,7 @@ class BlackjackEnv(gym.Env):
     def step(self, action):
         assert self.action_space.contains(action)
         if action:  # hit: add a card to players hand and return
-            self.player.append(cards.draw())
+            self.player.append(self.cards.draw_card())
             self.logger.log_message(f"Player hits an {self.player[-1]}")
             self.logger.log_message(f"Player new total: {sum(self.player)}")
             if is_bust(self.player):
@@ -98,11 +89,11 @@ class BlackjackEnv(gym.Env):
                 reward = 0
         else:  # stick: play out the dealers hand, and score
             done = True
-            self.dealer.append(cards.flip_folded())
+            self.dealer.append(self.cards.flip_hidden_dealer_card())
             self.logger.log_message(f"Dealer hits an {self.dealer[-1]}")
             self.logger.log_message(f"Dealer new total: {sum(self.dealer)}")
             while sum_hand(self.dealer) < 17:
-                self.dealer.append(cards.draw())
+                self.dealer.append(self.cards.draw_card())
                 self.logger.log_message(f"Dealer hits an {self.dealer[-1]}")
                 self.logger.log_message(f"Dealer new total: {sum(self.dealer)}")
             reward = cmp(score(self.player), score(self.dealer))
@@ -112,37 +103,48 @@ class BlackjackEnv(gym.Env):
         if done == True:
             self.calculate_reward(reward)
 
+
         return self._get_obs(), done, {}
 
     def calculate_reward(self,reward):
         #TODO: Check if logic makes sense
         if reward == 0:
-            self.logger.log_message("DRAW")
+            self.logger.log_message("DRAW\n")
         elif reward == 1 or reward == 1.5:
-            self.logger.log_message("WIN")
+            self.logger.log_message("WIN\n")
         elif reward == -1:
-            self.logger.log_message("LOSE")
+            self.logger.log_message("LOSE\n")
 
+
+    def reset(self):
+        self.player = [self.cards.draw_card()]
+        self.dealer = [self.cards.draw_card()]
+        self.player.append(self.cards.draw_card())
+        self.cards.blind_bank()
+
+        if usable_ace(self.player) == True:
+            self.logger.log_message(
+                f"Player has a usable Ace is: {usable_ace(self.player)}")
+            self.logger.log_message(f"Player: {self.player} -> "
+                                    f"{sum(self.player)+10}")
+        else:
+            self.logger.log_message(f"Player: {self.player} -> {sum(self.player)}")
+
+        self.logger.log_message(f"Dealer: {self.dealer[0]}")
+        return self.readable_observation()
 
     def _get_obs(self):
         "This makes sure that the player only knows the first card the dealer has."
 
         return (sum_hand(self.player), self.dealer[0], usable_ace(self.player))
 
-    def reset(self):
-        self.player = [cards.draw()]
-        self.dealer = [cards.draw()]
-        self.player.append(cards.draw())
-        cards.blind_bank()
-        self.logger.log_message(f"Player: {self.player} -> {sum(self.player)}")
-        self.logger.log_message(f"Dealer: {self.dealer[0]}")
-        self.logger.log_message(f"Player has a usable Ace is: {usable_ace(self.player)}")
-
-        return self.readable_observation()
-
     def readable_observation(self):
         player_hand,dealer_hand,has_usable_ace = self._get_obs()
-        return player_hand,dealer_hand
+        if is_natural(self.player):
+            natural_blackjack = True
+        else:
+            natural_blackjack = False
+        return player_hand,dealer_hand,natural_blackjack
 
     def take_action(self):
         action = self.action_space.sample()
@@ -157,3 +159,9 @@ class BlackjackEnv(gym.Env):
             return 1
         else:
             raise NotImplementedError
+
+    def hand_log(self,hand):
+
+        self.logger.log_message(f"Player: {self.player} -> {sum(self.player)}")
+        self.logger.log_message(f"Dealer: {self.dealer[0]}")
+        self.logger.log_message(f"Player has a usable Ace is: {usable_ace(self.player)}")
