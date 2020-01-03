@@ -2,7 +2,7 @@ import numpy as np
 from random import shuffle
 
 
-class Cards(object):
+class Card(object):
     def __init__(self, decks=8, cut=.5):
         self.number_of_suits_in_deck = 4
         self.pile_dict = {"A": 1,

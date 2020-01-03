@@ -1,38 +1,9 @@
 import gym
 from gym import spaces
 from gym.utils import seeding
-from Logging.Logger import Customlogger
-from src.Cards import Cards
-
-
-def cmp(a, b):
-    return float(a > b) - float(a < b)
-
-
-# 1 = Ace, 2-10 = Number cards, Jack/Queen/King = 10
-# deck = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]
-
-def usable_ace(hand):  # Does this hand have a usable ace?
-    return 1 in hand and sum(hand) + 10 <= 21
-
-
-def sum_hand(hand):  # Return current hand total
-    if usable_ace(hand):
-        return sum(hand) + 10
-    return sum(hand)
-
-
-def is_bust(hand):  # Is this hand a bust?
-    return sum_hand(hand) > 21
-
-
-def score(hand):  # What is the score of this hand (0 if bust)
-    return 0 if is_bust(hand) else sum_hand(hand)
-
-
-def is_natural(hand):  # Is this hand a natural blackjack?
-    return sorted(hand) == [1, 10] or sorted(hand) == [1, 11] or sorted(hand)== [1, 12] or sorted(hand) == [1, 10]
-
+#from Logging.Logger import Customlogger
+from src.Playingdeck import Playingdeck
+from src.Hand import Hand
 
 class BlackjackEnv(gym.Env):
     """Simple blackjack environment
@@ -60,16 +31,14 @@ class BlackjackEnv(gym.Env):
     http://incompleteideas.net/book/the-book-2nd.html
     """
     def __init__(self, natural=False):
-        self.logger = Customlogger(__name__)
-        self.logger.log_message("Setting up the BlackJack environment.\n")
         self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Tuple((
             spaces.Discrete(32),
             spaces.Discrete(11),
             spaces.Discrete(2)))
         self.seed()
+        self.deck = Playingdeck()
         self.natural = natural
-        self.cards = Cards()
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -79,26 +48,18 @@ class BlackjackEnv(gym.Env):
         assert self.action_space.contains(action)
         if action:  # hit: add a card to players hand and return
             self.player.append(self.cards.draw_card())
-            self.logger.log_message(f"Player hits an {self.player[-1]}")
-            self.logger.log_message(f"Player new total: {sum(self.player)}")
             if is_bust(self.player):
                 done = True
                 reward = -1
-                self.logger.log_message(f"Dealer had:[{self.dealer[-1]}"
-                                        f",{self.cards.hidden_dealer_card}]"
-                                        f" {sum(self.dealer) + self.cards.hidden_dealer_card}")
+
             else:
                 done = False
                 reward = 0
         else:  # stick: play out the dealers hand, and score
             done = True
             self.dealer.append(self.cards.flip_hidden_dealer_card())
-            self.logger.log_message(f"Dealer hits an {self.dealer[-1]}")
-            self.logger.log_message(f"Dealer new total: {sum(self.dealer)}")
             while sum_hand(self.dealer) < 17:
                 self.dealer.append(self.cards.draw_card())
-                self.logger.log_message(f"Dealer hits an {self.dealer[-1]}")
-                self.logger.log_message(f"Dealer new total: {sum(self.dealer)}")
             reward = cmp(score(self.player), score(self.dealer))
             if self.natural and is_natural(self.player) and reward == 1:
                 reward = 1.5
@@ -106,11 +67,9 @@ class BlackjackEnv(gym.Env):
         if done == True:
             self.calculate_reward(reward)
 
-
         return self._get_obs(), done, {}
 
     def calculate_reward(self,reward):
-        #TODO: Check if logic makes sense
         if reward == 0:
             self.logger.log_message("DRAW")
         elif reward == 1 or reward == 1.5:
@@ -120,51 +79,29 @@ class BlackjackEnv(gym.Env):
 
 
     def reset(self):
-        self.player = [self.cards.draw_card()]
-        self.dealer = [self.cards.draw_card()]
-        self.player.append(self.cards.draw_card())
-        self.cards.blind_bank()
+        self.player = Hand()
+        self.dealer = Hand(dealer=True)
 
-        if usable_ace(self.player) == True:
-            self.logger.log_message(
-                f"Player has a usable Ace is: {usable_ace(self.player)}")
-            self.logger.log_message(f"Player: {self.player} -> "
-                                    f"{sum(self.player)+10}")
-        else:
-            self.logger.log_message(f"Player: {self.player} -> {sum(self.player)}")
+        self.player.cards.append(self.deck.draw_card())
+        self.dealer.cards.append(self.deck.draw_card())
+        self.player.cards.append(self.deck.draw_card())
+        self.dealer.make_card_hidden(self.deck.draw_card())
 
-        self.logger.log_message(f"Dealer: {self.dealer[0]}")
-        return self.readable_observation()
+        return
 
-    def _get_obs(self):
-        "This makes sure that the player only knows the first card the dealer has."
+    # def _get_obs(self):
+    #     "This makes sure that the player only knows the first card the dealer has."
+    #
+    #     return (sum_hand(self.player), self.dealer[0], usable_ace(self.player))
 
-        return (sum_hand(self.player), self.dealer[0], usable_ace(self.player))
-
-    def readable_observation(self):
-        player_hand,dealer_hand,has_usable_ace = self._get_obs()
-        if is_natural(self.player):
-            natural_blackjack = True
-        else:
-            natural_blackjack = False
-        return player_hand,dealer_hand,natural_blackjack
+    # def readable_observation(self):
+    #     player_hand,dealer_hand,has_usable_ace = self._get_obs()
+    #     if is_natural(self.player):
+    #         natural_blackjack = True
+    #     else:
+    #         natural_blackjack = False
+    #     return player_hand,dealer_hand,natural_blackjack
 
     def take_action(self):
         action = self.action_space.sample()
         return self.translate_action(action)
-
-    def translate_action(self,action):
-        if action == 0:
-            self.logger.log_message("The player doesn't draw another card.")
-            return 0
-        elif action == 1:
-            self.logger.log_message("The player hits another card. ")
-            return 1
-        else:
-            raise NotImplementedError
-
-    def hand_log(self,hand):
-
-        self.logger.log_message(f"Player: {self.player} -> {sum(self.player)}")
-        self.logger.log_message(f"Dealer: {self.dealer[0]}")
-        self.logger.log_message(f"Player has a usable Ace is: {usable_ace(self.player)}")
