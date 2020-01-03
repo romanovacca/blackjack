@@ -64,10 +64,13 @@ class BlackjackEnv(gym.Env):
             self.player.cards.append(self.deck.draw_card())
             if self.is_bust(self.player.get_value()):
                 done = True
-                reward = -1
+                self.dealer.flip_hidden_card()
+                reward = self.determine_reward(self.player.get_value(),
+                                               self.dealer.get_value())
             else:
                 done = False
                 reward = 0
+
         else:  # stick: play out the dealers hand, and score
             done = True
             self.dealer.flip_hidden_card()
@@ -90,7 +93,11 @@ class BlackjackEnv(gym.Env):
         return float(a > b) - float(a < b)
 
     def determine_reward(self, player_value, dealer_value):
-        if player_value > dealer_value:
+        if self.is_bust(player_value):
+            return 1
+        elif self.is_bust(dealer_value):
+            return -1
+        elif player_value > dealer_value:
             return -1
         elif player_value < dealer_value:
             return 1
