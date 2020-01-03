@@ -14,8 +14,8 @@ for i_episode in range(10):
             print(info)
             print(reward)
             #print("\n")
-            #logger.log_message(f"Running count:{env.cards.running_count}")
-            #logger.log_message(f"Running count:{env.cards.true_count}\n")
+            print(f"Running count:{env.deck.running_count}")
+            print(f"Running count:{env.deck.true_count}\n")
             if reward == 0:
                 draws +=1
             elif reward == 1:

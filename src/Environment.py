@@ -40,7 +40,8 @@ class BlackjackEnv(gym.Env):
             spaces.Discrete(2)))
         self.seed()
         self.deck = Playingdeck()
-        self.natural = natural
+        #self.natural = natural
+        self.cutting_card_showed = self.deck.cutting_card_shown
 
     def reset(self):
         self.player = Hand()
@@ -82,7 +83,7 @@ class BlackjackEnv(gym.Env):
 
             # if self.natural and is_natural(self.player) and reward == 1:
             #     reward = 1.5
-
+        self.cutting_card_showed
         return reward, ((f"player value:",self.player.get_value()),(f"dealer",self.dealer.get_value())), done
 
     def take_action(self):
@@ -109,3 +110,4 @@ class BlackjackEnv(gym.Env):
             return True
         else:
             return False
+

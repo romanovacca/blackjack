@@ -5,7 +5,7 @@ class Hand:
         self.value = 0
         self.hidden_dealer_card = None
 
-    def draw_card_hidden(self,card):
+    def draw_card_hidden(self, card):
         self.hidden_dealer_card = card
 
     def flip_hidden_card(self):
@@ -31,5 +31,3 @@ class Hand:
     def get_value(self):
         self.calculate_value()
         return self.value
-
-    #[A of Clubs, A of Hearts]
