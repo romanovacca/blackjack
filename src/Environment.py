@@ -65,7 +65,6 @@ class BlackjackEnv(gym.Env):
             done = True
             self.player.has_blackjack = True
             self.dealer.flip_hidden_card()
-
             action = 0
 
         else:

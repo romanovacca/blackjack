@@ -13,17 +13,17 @@ for i_episode in range(100):
         if done:
             #print(info)
             # print("\n")
-            # if env.deck.true_count > 2 and env.deck.percentage_of_deck_left <\
-            #         55:
+            #if env.shoe.true_count > 2 and env.shoe.percentage_of_deck_left <\
+            #        55:
                 #print(info)
                 #print(reward)
                 #print(env.deck.percentage_of_deck_left)
-                #print(f"Running count:{env.deck.running_count}")
-                #print(f"True count:{env.deck.true_count}\n")
+                #print(f"Running count:{env.shoe.running_count}")
+                #print(f"True count:{env.shoe.true_count}\n")
             #print(f"Running count:{env.deck.running_count}")
             #print(f"True count:{env.deck.true_count}\n")
             #print(env.deck.percentage_of_deck_left)
-
             break
+        #break
 print(env.reward.final_result())
 env.close()

@@ -4,7 +4,6 @@ class Rewardmechanism:
         self.wins = 0
         self.losses = 0
         self.draws = 0
-        self.balance = 0
 
     def determine_reward(self, player_value, dealer_value):
         if self.is_bust(player_value):

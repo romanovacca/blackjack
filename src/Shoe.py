@@ -71,7 +71,8 @@ class Shoe:
     def add_cutting_card(self):
         """ Adds a cutting card to the deck.
         """
-        self.shoe.insert(self.cutting_card_index, "CC")
+        cutting_card_name = "CC"
+        self.shoe.insert(self.cutting_card_index, cutting_card_name)
 
     def create_shoe(self):
         """ A collection of decks.
