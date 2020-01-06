@@ -1,4 +1,8 @@
+from src.Hand import Hand
+
 class Player:
-    def __init__(self):
+    def __init__(self,dealer=False):
         self.has_blackjack = False
-        self.balance = 0
+        self.is_dealer = dealer
+        self.balance = 50
+        self.player = Hand()

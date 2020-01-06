@@ -1,9 +1,9 @@
 class Hand:
     def __init__(self, dealer=False):
-        self.dealer = dealer
+        #self.dealer = dealer
         self.cards = []
         self.value = 0
-        self.has_blackjack = False
+        #self.has_blackjack = False
         self.hidden_dealer_card = None
 
     def draw_card_hidden(self, card):

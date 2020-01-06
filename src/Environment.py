@@ -5,6 +5,8 @@ from gym.utils import seeding
 from src.Shoe import Shoe
 from src.Hand import Hand
 from src.Reward import Rewardmechanism
+from src.Player import Player
+from src.Dealer import Dealer
 
 
 class BlackjackEnv(gym.Env):
@@ -43,18 +45,50 @@ class BlackjackEnv(gym.Env):
         self.shoe = Shoe()
         self.reward = Rewardmechanism()
         self.cutting_card_showed = self.shoe.cutting_card_shown
+        self.players = []
 
 
-    def reset(self):
+
+    def reset(self,number_of_players):
+        try:
+            assert number_of_players >= 1
+        except AssertionError as e:
+            e.args += ('There needs to be at least 1 player to play the '
+                       'game.', '.')
+            raise
+
         self.shoe.check_shoe_replacement()
-        self.player = Hand()
-        self.dealer = Hand(dealer=True)
+        self.create_players(number_of_players)
+        self.create_dealer()
+        self.deal_initial_cards(number_of_players)
+        #self.player = Hand()
+        #self.dealer = Hand(dealer=True)
 
-        self.player.cards.append(self.shoe.draw_card())
-        self.dealer.cards.append(self.shoe.draw_card())
-        self.player.cards.append(self.shoe.draw_card())
-        self.dealer.draw_card_hidden(self.shoe.draw_card())
+        # self.player.cards.append(self.shoe.draw_card())
+        # self.dealer.cards.append(self.shoe.draw_card())
+        # self.player.cards.append(self.shoe.draw_card())
+        # self.dealer.draw_card_hidden(self.shoe.draw_card())
         return
+
+    def create_players(self,number_of_players):
+        for i in range(number_of_players):
+            self.players.append(Player())
+            #self.players[i].player.cards.append(self.shoe.draw_card())
+
+    def create_dealer(self):
+        self.dealer = Dealer()
+
+    def deal_initial_cards(self,number_of_players):
+        for i in range(2):
+            for j in range(number_of_players):
+                self.players[j].player.cards.append(self.shoe.draw_card())
+            if i == 0:
+                self.dealer.dealer.cards.append(self.shoe.draw_card())
+            elif i == 1:
+                self.dealer.dealer.draw_card_hidden(self.shoe.draw_card())
+            else:
+                pass
+
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)

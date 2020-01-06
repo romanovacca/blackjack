@@ -7,7 +7,7 @@ env = BlackjackEnv()
 # losses = 0
 # draws = 0
 for i_episode in range(100):
-    env.reset()
+    env.reset(2)
     for t in range(100):
         info, done = env.step()
         if done:
