@@ -5,6 +5,7 @@ class Hand:
         self.value = 0
         self.has_blackjack = False
         self.hidden_dealer_card = None
+        self.money = 0
 
     def draw_card_hidden(self, card):
         self.hidden_dealer_card = card
