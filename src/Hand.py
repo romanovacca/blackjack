@@ -3,6 +3,7 @@ class Hand:
         self.dealer = dealer
         self.cards = []
         self.value = 0
+        self.has_blackjack = False
         self.hidden_dealer_card = None
 
     def draw_card_hidden(self, card):
@@ -10,7 +11,6 @@ class Hand:
 
     def flip_hidden_card(self):
         self.cards.append(self.hidden_dealer_card)
-        self.hidden_dealer_card = None
 
     def calculate_value(self):
         self.value = 0

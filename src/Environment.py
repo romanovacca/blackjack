@@ -58,9 +58,18 @@ class BlackjackEnv(gym.Env):
         return [seed]
 
     def step(self):
-        action = self.take_action()
+        if self.player.get_value() == 21 and len(self.player.cards) == 2:
+            done = True
+            self.player.has_blackjack = True
+            self.dealer.flip_hidden_card()
+            reward = self.determine_reward(self.player.get_value(),
+                                           self.dealer.get_value()) -0.5
+            action = 0
+        else:
+            action = self.take_action()
 
         assert self.action_space.contains(action)
+
         if action:  # hit: add a card to players hand and return
             self.player.cards.append(self.deck.draw_card())
             if self.is_bust(self.player.get_value()):
@@ -75,15 +84,20 @@ class BlackjackEnv(gym.Env):
         else:  # stick: play out the dealers hand, and score
             done = True
             self.dealer.flip_hidden_card()
-            while self.dealer.get_value() < 17:
-                self.dealer.cards.append(self.deck.draw_card())
+            if self.dealer.get_value() == 21 and len(self.dealer.cards) == 2:
+                self.dealer.has_blackjack = True
+                reward = self.determine_reward(self.player.get_value(),
+                                               self.dealer.get_value())
+            else:
+                while self.dealer.get_value() < 17:
+                    self.dealer.cards.append(self.deck.draw_card())
 
-            reward = self.determine_reward(self.player.get_value(),
-                                           self.dealer.get_value())
+                reward = self.determine_reward(self.player.get_value(),
+                                               self.dealer.get_value())
 
             # if self.natural and is_natural(self.player) and reward == 1:
             #     reward = 1.5
-        self.cutting_card_showed
+        #self.cutting_card_showed
         return reward, ((f"player value:",self.player.get_value()),(f"dealer",self.dealer.get_value())), done
 
     def take_action(self):
@@ -110,4 +124,8 @@ class BlackjackEnv(gym.Env):
             return True
         else:
             return False
-
+    def has_blackjack(self,hand):
+        if len(hand.cards) == 2 and hand.value == 21:
+            return True
+        else:
+            return False
