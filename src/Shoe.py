@@ -89,7 +89,7 @@ class Shoe:
         shown.
 
         """
-        self.logger.log_message("New shoe in play.")
+        #self.logger.log_message("New shoe in play.")
 
         self.shoe = []
 

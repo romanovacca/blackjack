@@ -49,7 +49,7 @@ class BlackjackEnv(gym.Env):
 
 
 
-    def reset(self,number_of_players):
+    def reset(self,i_episode,number_of_players):
         try:
             assert number_of_players >= 1
         except AssertionError as e:
@@ -58,24 +58,27 @@ class BlackjackEnv(gym.Env):
             raise
 
         self.shoe.check_shoe_replacement()
-        self.create_players(number_of_players)
-        self.create_dealer()
+        if i_episode == 0:
+            self.create_players(number_of_players)
+            self.create_dealer()
         self.deal_initial_cards(number_of_players)
         return
 
     def create_players(self,number_of_players):
         for i in range(number_of_players):
             self.players.append(Player(i))
-            #self.players[i].player.cards.append(self.shoe.draw_card())
 
     def create_dealer(self):
         self.dealer = Dealer()
 
     def deal_initial_cards(self,number_of_players):
-        for i in range(2):
+        number_of_initial_cards = 2
+        for i in range(number_of_initial_cards):
             for j in range(number_of_players):
+                self.players[j].hand.cards = []
                 self.players[j].hand.cards.append(self.shoe.draw_card())
             if i == 0:
+                self.dealer.dealer_hand.cards = []
                 self.dealer.dealer_hand.cards.append(self.shoe.draw_card())
             elif i == 1:
                 self.dealer.dealer_hand.draw_card_hidden(self.shoe.draw_card())
@@ -90,7 +93,6 @@ class BlackjackEnv(gym.Env):
     def step(self):
         for player in self.players:
             if player.hand.get_value() == 21 and len(player.hand.cards)  == 2:
-                done = True
                 player.hand.has_blackjack = True
                 action = 0
         # if self.player.get_value() == 21 and len(self.player.cards) == 2:
@@ -142,10 +144,14 @@ class BlackjackEnv(gym.Env):
         for player in self.players:
             if result_type == "individual":
                 print(f"player{player.name} last result : {player.last_reward}")
+                print("Round ended.\n")
+
             elif result_type == "summary":
                 print(f"player{player.name} last result : "
                                         f"{player.reward.final_result()}")
+                print("Game finished.\n")
+
             else:
                 raise NotImplementedError
-        self.logger.log_message("Round ended\n")
+
 
