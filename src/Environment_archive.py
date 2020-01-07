@@ -2,7 +2,6 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 from Logging.Logger import Customlogger
-from src.Cards_archive import Card
 
 
 def cmp(a, b):

@@ -3,27 +3,14 @@ from Logging.Logger import Customlogger
 
 logger = Customlogger(__name__)
 env = BlackjackEnv()
-# wins = 0
-# losses = 0
-# draws = 0
-for i_episode in range(100):
-    env.reset(2)
-    #for t in range(100):
+number_of_players = 2
+#result_type = "individual"
+result_type = "summary"
+for i_episode in range(2):
+    env.reset(number_of_players)
     env.step()
-        #if done:
-            #print(info)
-            # print("\n")
-            #if env.shoe.true_count > 2 and env.shoe.percentage_of_deck_left <\
-            #        55:
-                #print(info)
-                #print(reward)
-                #print(env.deck.percentage_of_deck_left)
-                #print(f"Running count:{env.shoe.running_count}")
-                #print(f"True count:{env.shoe.true_count}\n")
-            #print(f"Running count:{env.deck.running_count}")
-            #print(f"True count:{env.deck.true_count}\n")
-            #print(env.deck.percentage_of_deck_left)
-        #break
-        #break
-#print(env.reward.final_result())
+    if result_type == "individual":
+        env.result(result_type)
+if result_type == "summary":
+    env.result(result_type)
 env.close()

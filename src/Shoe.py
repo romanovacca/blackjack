@@ -1,12 +1,14 @@
 import random
 
 from src.Deck import Deck
+from Logging.Logger import Customlogger
 
 
 class Shoe:
     def __init__(self, decks=8):
+        self.logger = Customlogger(__name__)
         self.decks = decks
-        self.shoe = []
+        #self.shoe = []
         self.create_shoe()
         self.max_number_of_cards_in_deck = len(self.shoe)
 
@@ -19,16 +21,17 @@ class Shoe:
         card or not, so this is handled properly.
 
         """
-        if self.shoe[0] == "CC":
-            self.shoe.pop(0)
-            self.cutting_card_shown = True
+        if len(self.shoe) > 0:
+            if self.shoe[0] == "CC":
+                self.shoe.pop(0)
+                self.cutting_card_shown = True
 
-        card = self.shoe.pop(0)
-        self.percentage_of_deck_left = (len(self.shoe) /
-                                        self.max_number_of_cards_in_deck) * 100
-        self.calculate_counts(card)
+            card = self.shoe.pop(0)
+            self.percentage_of_deck_left = (len(self.shoe) /
+                                            self.max_number_of_cards_in_deck) * 100
+            self.calculate_counts(card)
 
-        return card
+            return card
 
     def calculate_counts(self, card):
         self.calculate_running_count(card)
@@ -60,7 +63,10 @@ class Shoe:
         0,5 advantage. So when the true count is 1, you have even odds with the
         dealer.
         """
-        self.true_count = self.running_count / (len(self.shoe) / 52)
+        if not (len(self.shoe)) == 0:
+            self.true_count = self.running_count / (len(self.shoe) / 52)
+        else:
+            print("")
 
     def determine_cutting_card_index(self):
         return random.randrange(
@@ -83,6 +89,8 @@ class Shoe:
         shown.
 
         """
+        self.logger.log_message("New shoe in play.")
+
         self.shoe = []
 
         for i in range(self.decks):

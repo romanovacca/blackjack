@@ -1,9 +1,8 @@
 import gym
 from gym import spaces
 from gym.utils import seeding
-# from Logging.Logger import Customlogger
+from Logging.Logger import Customlogger
 from src.Shoe import Shoe
-from src.Hand import Hand
 from src.Reward import Rewardmechanism
 from src.Player import Player
 from src.Dealer import Dealer
@@ -36,6 +35,7 @@ class BlackjackEnv(gym.Env):
     """
 
     def __init__(self):
+        self.logger = Customlogger(__name__)
         self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Tuple((
             spaces.Discrete(32),
@@ -61,18 +61,11 @@ class BlackjackEnv(gym.Env):
         self.create_players(number_of_players)
         self.create_dealer()
         self.deal_initial_cards(number_of_players)
-        #self.player = Hand()
-        #self.dealer = Hand(dealer=True)
-
-        # self.player.cards.append(self.shoe.draw_card())
-        # self.dealer.cards.append(self.shoe.draw_card())
-        # self.player.cards.append(self.shoe.draw_card())
-        # self.dealer.draw_card_hidden(self.shoe.draw_card())
         return
 
     def create_players(self,number_of_players):
         for i in range(number_of_players):
-            self.players.append(Player())
+            self.players.append(Player(i))
             #self.players[i].player.cards.append(self.shoe.draw_card())
 
     def create_dealer(self):
@@ -144,3 +137,15 @@ class BlackjackEnv(gym.Env):
             return True
         else:
             return False
+
+    def result(self,result_type):
+        for player in self.players:
+            if result_type == "individual":
+                print(f"player{player.name} last result : {player.last_reward}")
+            elif result_type == "summary":
+                print(f"player{player.name} last result : "
+                                        f"{player.reward.final_result()}")
+            else:
+                raise NotImplementedError
+        self.logger.log_message("Round ended\n")
+
