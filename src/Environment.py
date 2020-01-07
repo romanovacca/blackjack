@@ -81,11 +81,11 @@ class BlackjackEnv(gym.Env):
     def deal_initial_cards(self,number_of_players):
         for i in range(2):
             for j in range(number_of_players):
-                self.players[j].player.cards.append(self.shoe.draw_card())
+                self.players[j].hand.cards.append(self.shoe.draw_card())
             if i == 0:
-                self.dealer.dealer.cards.append(self.shoe.draw_card())
+                self.dealer.dealer_hand.cards.append(self.shoe.draw_card())
             elif i == 1:
-                self.dealer.dealer.draw_card_hidden(self.shoe.draw_card())
+                self.dealer.dealer_hand.draw_card_hidden(self.shoe.draw_card())
             else:
                 pass
 
@@ -95,43 +95,39 @@ class BlackjackEnv(gym.Env):
         return [seed]
 
     def step(self):
-        if self.player.get_value() == 21 and len(self.player.cards) == 2:
-            done = True
-            self.player.has_blackjack = True
-            self.dealer.flip_hidden_card()
-            action = 0
-
-        else:
-            action = self.take_action()
-
-        assert self.action_space.contains(action)
-
-        if action:  # hit: add a card to players hand and return
-            self.player.cards.append(self.shoe.draw_card())
-            if self.is_bust(self.player.get_value()):
+        for player in self.players:
+            if player.hand.get_value() == 21 and len(player.hand.cards)  == 2:
                 done = True
-                self.dealer.flip_hidden_card()
+                player.hand.has_blackjack = True
+                action = 0
+        # if self.player.get_value() == 21 and len(self.player.cards) == 2:
+        #     done = True
+        #     self.player.has_blackjack = True
+        #     self.dealer.flip_hidden_card() #TODO: implement this
+        #     action = 0
 
             else:
-                done = False
+                action = self.take_action()
 
-        else:  # stick: play out the dealers hand, and score
-            done = True
-            self.dealer.flip_hidden_card()
-            if self.dealer.get_value() == 21 and len(self.dealer.cards) == 2:
-                self.dealer.has_blackjack = True
+            assert self.action_space.contains(action)
+            while action == 1:
 
-            else:
-                while self.dealer.get_value() < 17:
-                    self.dealer.cards.append(self.shoe.draw_card())
+                player.hand.cards.append(self.shoe.draw_card())
+                if self.is_bust(player.hand.get_value()):
+                    action = 0
+                else:
+                    action = self.take_action()
 
-        if done == True:
-            reward_res = self.reward.determine_reward(self.player.get_value(),
-                                          self.dealer.get_value())
-            self.reward.add_reward(reward_res)
+        self.dealer.dealer_hand.flip_hidden_card()
 
-        return ((f"player value:", self.player.get_value()),
-                        (f"dealer", self.dealer.get_value())), done
+        if self.dealer.dealer_hand.get_value() == 21 and len(
+                self.dealer.dealer_hand.cards) == 2:
+            self.dealer.has_blackjack = True
+        else:
+            while self.dealer.dealer_hand.get_value() < 17:
+                self.dealer.dealer_hand.cards.append(self.shoe.draw_card())
+
+        self.reward.determine_reward(self.players,self.dealer)
 
     def take_action(self):
         action = self.action_space.sample()

@@ -8,9 +8,9 @@ env = BlackjackEnv()
 # draws = 0
 for i_episode in range(100):
     env.reset(2)
-    for t in range(100):
-        info, done = env.step()
-        if done:
+    #for t in range(100):
+    env.step()
+        #if done:
             #print(info)
             # print("\n")
             #if env.shoe.true_count > 2 and env.shoe.percentage_of_deck_left <\
@@ -23,7 +23,7 @@ for i_episode in range(100):
             #print(f"Running count:{env.deck.running_count}")
             #print(f"True count:{env.deck.true_count}\n")
             #print(env.deck.percentage_of_deck_left)
-            break
         #break
-print(env.reward.final_result())
+        #break
+#print(env.reward.final_result())
 env.close()

@@ -5,17 +5,20 @@ class Rewardmechanism:
         self.losses = 0
         self.draws = 0
 
-    def determine_reward(self, player_value, dealer_value):
-        if self.is_bust(player_value):
-            return 1
-        elif self.is_bust(dealer_value):
-            return -1
-        elif player_value > dealer_value:
-            return -1
-        elif player_value < dealer_value:
-            return 1
-        else:
-            return 0
+    def determine_reward(self, players, dealer):
+        for player in players:
+
+            if self.is_bust(player.hand.value):
+                player.reward.losses += 1
+            elif self.is_bust(dealer.dealer_hand.value):
+                player.reward.wins += 1
+            elif player.hand.value > dealer.dealer_hand.value:
+                player.reward.wins += 1
+            elif player.hand.value < dealer.dealer_hand.value:
+                player.reward.losses += 1
+            else:
+                player.reward.draws += 1
+
 
     def is_bust(self, value):
         if value > 21:
