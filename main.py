@@ -3,12 +3,16 @@ from Logging.Logger import Customlogger
 
 logger = Customlogger(__name__)
 env = BlackjackEnv()
-number_of_players = 1
+number_of_players = 3
+strategies = ["Random","Random","Random"]
+stand_on_17 = True
+
 #result_type = "individual"
 result_type = "summary"
-for i_episode in range(100000):
-    env.reset(i_episode,number_of_players)
-    env.step()
+
+for i_episode in range(100):
+    env.reset(i_episode,number_of_players,strategies)
+    env.step(stand_on_17)
 
     if result_type == "individual":
         env.result(result_type)

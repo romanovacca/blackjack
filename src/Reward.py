@@ -7,25 +7,40 @@ class Rewardmechanism:
         self.losses = 0
         self.draws = 0
         self.last_reward = []
+        self.rewardbalance = 50
 
     def determine_reward(self, players, dealer):
         for player in players:
-
-            if self.is_bust(player.hand.value):
-                player.reward.losses += 1
-                player.last_reward = "loss"
-            elif self.is_bust(dealer.dealer_hand.value):
-                player.reward.wins += 1
-                player.last_reward = "win"
-            elif player.hand.value > dealer.dealer_hand.value:
-                player.reward.wins += 1
-                player.last_reward = "win"
-            elif player.hand.value < dealer.dealer_hand.value:
-                player.reward.losses += 1
-                player.last_reward = "loss"
+            if not player.has_blackjack:
+                if self.is_bust(player.hand.value):
+                    player.reward.losses += 1
+                    player.last_reward = "loss"
+                    player.reward.rewardbalance -= 1
+                elif self.is_bust(dealer.dealer_hand.value):
+                    player.reward.wins += 1
+                    player.last_reward = "win"
+                    player.reward.rewardbalance += 1
+                elif player.hand.value > dealer.dealer_hand.value:
+                    player.reward.wins += 1
+                    player.last_reward = "win"
+                    player.reward.rewardbalance += 1
+                elif player.hand.value < dealer.dealer_hand.value:
+                    player.reward.losses += 1
+                    player.last_reward = "loss"
+                    player.reward.rewardbalance -= 1
+                else:
+                    player.reward.draws += 1
+                    player.last_reward = "draw"
             else:
-                player.reward.draws += 1
-                player.last_reward = "draw"
+                if dealer.has_blackjack:
+                    player.reward.draws += 1
+                    player.last_reward = "draw"
+                    dealer.has_blackjack = False
+                else:
+                    player.reward.wins += 1.5
+                    player.last_reward = "Win BJ"
+                    player.has_blackjack = False
+                    player.reward.rewardbalance += 1.5
 
 
     def is_bust(self, value):

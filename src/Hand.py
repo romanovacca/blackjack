@@ -1,11 +1,12 @@
 from Logging.Logger import Customlogger
 
 class Hand:
-    def __init__(self, dealer=False):
+    def __init__(self):
         self.logger = Customlogger(__name__)
         self.cards = []
         self.value = 0
         self.hidden_dealer_card = None
+        self.sidebet = []
 
     def draw_card_hidden(self, card):
         self.hidden_dealer_card = card
@@ -33,3 +34,7 @@ class Hand:
     def get_value(self):
         self.calculate_value()
         return self.value
+
+    def has_perfect_pair(self):
+        if self.cards[0] == self.cards[1]:
+            return "HAS PERFECT PAIR"

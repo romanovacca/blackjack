@@ -49,7 +49,7 @@ class BlackjackEnv(gym.Env):
 
 
 
-    def reset(self,i_episode,number_of_players):
+    def reset(self,i_episode,number_of_players,strategies):
         try:
             assert number_of_players >= 1
         except AssertionError as e:
@@ -59,14 +59,14 @@ class BlackjackEnv(gym.Env):
 
         self.shoe.check_shoe_replacement()
         if i_episode == 0:
-            self.create_players(number_of_players)
+            self.create_players(number_of_players,strategies)
             self.create_dealer()
         self.deal_initial_cards(number_of_players)
         return
 
-    def create_players(self,number_of_players):
+    def create_players(self,number_of_players,strategies):
         for i in range(number_of_players):
-            self.players.append(Player(i))
+            self.players.append(Player(i,strategies[i]))
 
     def create_dealer(self):
         self.dealer = Dealer()
@@ -75,34 +75,36 @@ class BlackjackEnv(gym.Env):
         number_of_initial_cards = 2
         for i in range(number_of_initial_cards):
             for j in range(number_of_players):
-                self.players[j].hand.cards = []
-                self.players[j].hand.cards.append(self.shoe.draw_card())
-            if i == 0:
-                self.dealer.dealer_hand.cards = []
-                self.dealer.dealer_hand.cards.append(self.shoe.draw_card())
-            elif i == 1:
-                self.dealer.dealer_hand.draw_card_hidden(self.shoe.draw_card())
-            else:
-                pass
+                if i == 0:
+                    self.dealer.dealer_hand.cards = []
+                    self.players[j].hand.cards = []
+                    self.players[j].hand.cards.append(self.shoe.draw_card())
+                    self.dealer.dealer_hand.cards.append(self.shoe.draw_card())
+                elif i == 1:
+                    self.players[j].hand.cards.append(self.shoe.draw_card())
+                    self.dealer.dealer_hand.draw_card_hidden(self.shoe.draw_card())
+                else:
+                    pass
+        self.evaluate_sidebets(number_of_players)
 
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def step(self):
+    def step(self,stand_on_17):
         for player in self.players:
             if player.hand.get_value() == 21 and len(player.hand.cards)  == 2:
-                player.hand.has_blackjack = True
+                player.has_blackjack = True
                 action = 0
-        # if self.player.get_value() == 21 and len(self.player.cards) == 2:
-        #     done = True
-        #     self.player.has_blackjack = True
-        #     self.dealer.flip_hidden_card() #TODO: implement this
-        #     action = 0
-
             else:
-                action = self.take_action()
+                if stand_on_17 == True:
+                    if player.hand.get_value() >= 17:
+                        action = 0
+                    else:
+                        action = self.take_action()
+                else:
+                    action = self.take_action()
 
             assert self.action_space.contains(action)
             while action == 1:
@@ -148,10 +150,16 @@ class BlackjackEnv(gym.Env):
 
             elif result_type == "summary":
                 print(f"player{player.name} last result : "
-                                        f"{player.reward.final_result()}")
+                                        f"{player.reward.final_result()} |"
+                      f"Final Balance: {player.reward.rewardbalance}|"
+                      f" Strategy: {player.strategy}|")
                 print("Game finished.\n")
 
             else:
                 raise NotImplementedError
+
+    def evaluate_sidebets(self,number_of_players):
+        for j in range(number_of_players):
+            self.players[j].hand.has_perfect_pair()
 
 

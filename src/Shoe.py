@@ -12,6 +12,7 @@ class Shoe:
         self.create_shoe()
         self.max_number_of_cards_in_deck = len(self.shoe)
 
+
     def get_shoe(self):
         return self.shoe
 

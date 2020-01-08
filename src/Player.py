@@ -3,7 +3,7 @@ from src.Reward import Rewardmechanism
 from Logging.Logger import Customlogger
 
 class Player:
-    def __init__(self,i,dealer=False):
+    def __init__(self,i,strategy,dealer=False):
         self.logger = Customlogger(__name__)
         self.name = i
         self.has_blackjack = False
@@ -12,3 +12,4 @@ class Player:
         self.hand = Hand()
         self.reward = Rewardmechanism()
         self.last_reward = self.reward.last_reward
+        self.strategy = strategy
