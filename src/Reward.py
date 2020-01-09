@@ -17,31 +17,38 @@ class Rewardmechanism:
                     player.reward.losses += 1
                     player.last_reward = "loss"
                     player.reward.rewardbalance -= self.minimum_bet_multiplier
+                    player.reward.rewardbalance += player.hand.sidebet
                 elif self.is_bust(dealer.dealer_hand.value):
                     player.reward.wins += 1
                     player.last_reward = "win"
                     player.reward.rewardbalance += self.minimum_bet_multiplier
+                    player.reward.rewardbalance += player.hand.sidebet
                 elif player.hand.value > dealer.dealer_hand.value:
                     player.reward.wins += 1
                     player.last_reward = "win"
                     player.reward.rewardbalance += self.minimum_bet_multiplier
+                    player.reward.rewardbalance += player.hand.sidebet
                 elif player.hand.value < dealer.dealer_hand.value:
                     player.reward.losses += 1
                     player.last_reward = "loss"
                     player.reward.rewardbalance -= self.minimum_bet_multiplier
+                    player.reward.rewardbalance += player.hand.sidebet
                 else:
                     player.reward.draws += 1
                     player.last_reward = "draw"
+                    player.reward.rewardbalance += player.hand.sidebet
             else:
                 if dealer.has_blackjack:
                     player.reward.draws += 1
                     player.last_reward = "draw"
                     dealer.has_blackjack = False
+                    player.reward.rewardbalance += player.hand.sidebet
                 else:
                     player.reward.wins += 1.5
                     player.last_reward = "Win BJ"
                     player.has_blackjack = False
                     player.reward.rewardbalance += 1.5 * self.minimum_bet_multiplier
+                    player.reward.rewardbalance += player.hand.sidebet
 
 
     def is_bust(self, value):

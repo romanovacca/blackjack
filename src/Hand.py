@@ -6,7 +6,7 @@ class Hand:
         self.cards = []
         self.value = 500
         self.hidden_dealer_card = None
-        self.sidebet = []
+        self.sidebet = 0
 
     def draw_card_hidden(self, card):
         self.hidden_dealer_card = card
@@ -36,5 +36,7 @@ class Hand:
         return self.value
 
     def has_perfect_pair(self):
-        if self.cards[0] == self.cards[1]:
-            return "HAS PERFECT PAIR"
+        self.sidebet = 0
+        if self.cards[0].suit == self.cards[1].suit and self.cards[0].value \
+                == self.cards[1].value:
+            self.sidebet += 13

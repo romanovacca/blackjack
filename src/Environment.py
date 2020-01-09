@@ -49,6 +49,7 @@ class BlackjackEnv(gym.Env):
 
 
 
+
     def reset(self,i_episode,number_of_players,strategies):
         try:
             assert number_of_players >= 1
