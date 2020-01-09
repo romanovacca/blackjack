@@ -34,7 +34,7 @@ class BlackjackEnv(gym.Env):
     http://incompleteideas.net/book/the-book-2nd.html
     """
 
-    def __init__(self):
+    def __init__(self,minimum_bet):
         self.logger = Customlogger(__name__)
         self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Tuple((
@@ -43,7 +43,7 @@ class BlackjackEnv(gym.Env):
             spaces.Discrete(2)))
         self.seed()
         self.shoe = Shoe()
-        self.reward = Rewardmechanism()
+        self.reward = Rewardmechanism(minimum_bet)
         self.cutting_card_showed = self.shoe.cutting_card_shown
         self.players = []
 
@@ -61,6 +61,7 @@ class BlackjackEnv(gym.Env):
         if i_episode == 0:
             self.create_players(number_of_players,strategies)
             self.create_dealer()
+        self.dealer.has_blackjack = False
         self.deal_initial_cards(number_of_players)
         return
 
@@ -121,7 +122,7 @@ class BlackjackEnv(gym.Env):
                 self.dealer.dealer_hand.cards) == 2:
             self.dealer.has_blackjack = True
         else:
-            while self.dealer.dealer_hand.get_value() < 17:
+            while self.dealer.dealer_hand.get_value() < 17 and player.hand.get_value() <= 21:
                 self.dealer.dealer_hand.cards.append(self.shoe.draw_card())
 
         self.reward.determine_reward(self.players,self.dealer)
@@ -145,7 +146,10 @@ class BlackjackEnv(gym.Env):
     def result(self,result_type):
         for player in self.players:
             if result_type == "individual":
-                print(f"player{player.name} last result : {player.last_reward}")
+                print(f"player{player.name} last result : "
+                      f"{player.hand.get_value()} vs"
+                      f" {self.dealer.dealer_hand.get_value()}"
+                      f" {player.last_reward}")
                 print("Round ended.\n")
 
             elif result_type == "summary":

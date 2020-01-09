@@ -4,7 +4,7 @@ class Hand:
     def __init__(self):
         self.logger = Customlogger(__name__)
         self.cards = []
-        self.value = 0
+        self.value = 500
         self.hidden_dealer_card = None
         self.sidebet = []
 
