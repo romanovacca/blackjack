@@ -3,7 +3,7 @@ from Logging.Logger import Customlogger
 
 logger = Customlogger(__name__)
 minimum_bet = 1
-env = BlackjackEnv(minimum_bet)
+env = BlackjackEnv()
 number_of_players = 1
 #strategies = ["Random","Random","Random"]
 strategies = ["Random"]

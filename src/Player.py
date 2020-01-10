@@ -8,8 +8,11 @@ class Player:
         self.name = i
         self.has_blackjack = False
         self.is_dealer = dealer
-        #self.balance = 50
         self.hand = Hand()
-        self.reward = Rewardmechanism(1)
-        self.last_reward = self.reward.last_reward
+        self.wins = 0
+        self.losses = 0
+        self.draws = 0
+        self.balance = 50
+        #self.reward = Rewardmechanism()
+        #self.last_reward = self.reward.last_reward
         self.strategy = strategy

@@ -3,9 +3,9 @@ from gym import spaces
 from gym.utils import seeding
 from Logging.Logger import Customlogger
 from src.Shoe import Shoe
-from src.Reward import Rewardmechanism
 from src.Player import Player
 from src.Dealer import Dealer
+from src.Reward import Rewardmechanism
 
 
 class BlackjackEnv(gym.Env):
@@ -34,7 +34,7 @@ class BlackjackEnv(gym.Env):
     http://incompleteideas.net/book/the-book-2nd.html
     """
 
-    def __init__(self,minimum_bet):
+    def __init__(self):
         self.logger = Customlogger(__name__)
         self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Tuple((
@@ -43,9 +43,9 @@ class BlackjackEnv(gym.Env):
             spaces.Discrete(2)))
         self.seed()
         self.shoe = Shoe()
-        self.reward = Rewardmechanism(minimum_bet)
         self.cutting_card_showed = self.shoe.cutting_card_shown
         self.players = []
+        self.reward = Rewardmechanism()
 
 
 
@@ -85,10 +85,9 @@ class BlackjackEnv(gym.Env):
                 elif i == 1:
                     self.players[j].hand.cards.append(self.shoe.draw_card())
                     self.dealer.dealer_hand.draw_card_hidden(self.shoe.draw_card())
+                    self.players[j].hand.check_for_sidebet()
                 else:
                     pass
-        self.evaluate_sidebets(number_of_players)
-
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -162,9 +161,5 @@ class BlackjackEnv(gym.Env):
 
             else:
                 raise NotImplementedError
-
-    def evaluate_sidebets(self,number_of_players):
-        for j in range(number_of_players):
-            self.players[j].hand.has_perfect_pair()
 
 

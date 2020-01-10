@@ -1,55 +1,51 @@
 from Logging.Logger import Customlogger
+from src.Sidebets import Sidebet
 
 class Rewardmechanism:
-    def __init__(self,minimum_bet):
+    def __init__(self):
         self.logger = Customlogger(__name__)
-        self.wins = 0
-        self.losses = 0
-        self.draws = 0
         self.last_reward = []
-        self.minimum_bet_multiplier = minimum_bet
-        self.rewardbalance = 0
+        self.minimum_bet_multiplier = 1
 
     def determine_reward(self, players, dealer):
         for player in players:
             if not player.has_blackjack:
                 if self.is_bust(player.hand.value):
-                    player.reward.losses += 1
+                    player.losses += 1
                     player.last_reward = "loss"
-                    player.reward.rewardbalance -= self.minimum_bet_multiplier
-                    player.reward.rewardbalance += player.hand.sidebet
+                    player.balance -= self.minimum_bet_multiplier
+                    player.balance += player.hand.sidebet_won_value
                 elif self.is_bust(dealer.dealer_hand.value):
-                    player.reward.wins += 1
+                    player.wins += 1
                     player.last_reward = "win"
-                    player.reward.rewardbalance += self.minimum_bet_multiplier
-                    player.reward.rewardbalance += player.hand.sidebet
+                    player.balance += self.minimum_bet_multiplier
+                    player.balance += player.hand.sidebet_won_value
                 elif player.hand.value > dealer.dealer_hand.value:
-                    player.reward.wins += 1
+                    player.wins += 1
                     player.last_reward = "win"
-                    player.reward.rewardbalance += self.minimum_bet_multiplier
-                    player.reward.rewardbalance += player.hand.sidebet
+                    player.balance += self.minimum_bet_multiplier
+                    player.balance += player.hand.sidebet_won_value
                 elif player.hand.value < dealer.dealer_hand.value:
-                    player.reward.losses += 1
+                    player.losses += 1
                     player.last_reward = "loss"
-                    player.reward.rewardbalance -= self.minimum_bet_multiplier
-                    player.reward.rewardbalance += player.hand.sidebet
+                    player.balance -= self.minimum_bet_multiplier
+                    player.balance += player.hand.sidebet_won_value
                 else:
-                    player.reward.draws += 1
+                    player.draws += 1
                     player.last_reward = "draw"
-                    player.reward.rewardbalance += player.hand.sidebet
+                    player.balance += player.hand.sidebet_won_value
             else:
                 if dealer.has_blackjack:
-                    player.reward.draws += 1
+                    player.draws += 1
                     player.last_reward = "draw"
                     dealer.has_blackjack = False
-                    player.reward.rewardbalance += player.hand.sidebet
+                    player.balance += player.hand.sidebet_won_value
                 else:
-                    player.reward.wins += 1.5
+                    player.wins += 1.5
                     player.last_reward = "Win BJ"
                     player.has_blackjack = False
-                    player.reward.rewardbalance += 1.5 * self.minimum_bet_multiplier
-                    player.reward.rewardbalance += player.hand.sidebet
-
+                    player.balance += 1.5 * self.minimum_bet_multiplier
+                    player.balance += player.hand.sidebet_won_value
 
     def is_bust(self, value):
         if value > 21:

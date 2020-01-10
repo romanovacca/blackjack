@@ -1,4 +1,6 @@
 from Logging.Logger import Customlogger
+from src.Reward import Rewardmechanism
+from src.Sidebets import Sidebet
 
 class Hand:
     def __init__(self):
@@ -6,7 +8,8 @@ class Hand:
         self.cards = []
         self.value = 500
         self.hidden_dealer_card = None
-        self.sidebet = 0
+        #self.reward = Rewardmechanism()
+        self.sidebet = Sidebet()
 
     def draw_card_hidden(self, card):
         self.hidden_dealer_card = card
@@ -35,8 +38,5 @@ class Hand:
         self.calculate_value()
         return self.value
 
-    def has_perfect_pair(self):
-        self.sidebet = 0
-        if self.cards[0].suit == self.cards[1].suit and self.cards[0].value \
-                == self.cards[1].value:
-            self.sidebet += 13
+    def check_for_sidebet(self):
+        self.sidebet_won_value = self.sidebet.check_for_sidebet(self.cards)
