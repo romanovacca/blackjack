@@ -1,14 +1,13 @@
 from Logging.Logger import Customlogger
-from src.Reward import Rewardmechanism
 from src.Sidebets import Sidebet
 
+
 class Hand:
-    def __init__(self):
+    def __init__(self, use_sidebet):
         self.logger = Customlogger(__name__)
         self.cards = []
-        self.value = 500
         self.hidden_dealer_card = None
-        #self.reward = Rewardmechanism()
+        self.use_sidebet = use_sidebet
         self.sidebet = Sidebet()
 
     def draw_card_hidden(self, card):
@@ -33,10 +32,15 @@ class Hand:
 
         if has_ace and self.value > 21:
             self.value -= 10
+        if has_ace and self.value == 31:
+            self.value -= 10
 
     def get_value(self):
         self.calculate_value()
         return self.value
 
     def check_for_sidebet(self):
-        self.sidebet_won_value = self.sidebet.check_for_sidebet(self.cards)
+        if self.use_sidebet:
+            return self.sidebet.sidebets(self.cards)
+        else:
+            return 0

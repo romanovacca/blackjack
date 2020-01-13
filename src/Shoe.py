@@ -67,7 +67,7 @@ class Shoe:
         if not (len(self.shoe)) == 0:
             self.true_count = self.running_count / (len(self.shoe) / 52)
         else:
-            print("")
+            print("x")
 
     def determine_cutting_card_index(self):
         return random.randrange(

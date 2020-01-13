@@ -34,7 +34,7 @@ class BlackjackEnv(gym.Env):
     http://incompleteideas.net/book/the-book-2nd.html
     """
 
-    def __init__(self):
+    def __init__(self,ante, use_sidebet):
         self.logger = Customlogger(__name__)
         self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Tuple((
@@ -46,11 +46,12 @@ class BlackjackEnv(gym.Env):
         self.cutting_card_showed = self.shoe.cutting_card_shown
         self.players = []
         self.reward = Rewardmechanism()
+        self.ante = ante
+        self.use_sidebet = use_sidebet
 
-
-
-
-    def reset(self,i_episode,number_of_players,strategies):
+    def reset(self, i_episode, number_of_players, strategies):
+        print("\n")
+        print(f"Starting iteration number {i_episode}")
         try:
             assert number_of_players >= 1
         except AssertionError as e:
@@ -60,20 +61,22 @@ class BlackjackEnv(gym.Env):
 
         self.shoe.check_shoe_replacement()
         if i_episode == 0:
-            self.create_players(number_of_players,strategies)
+            self.create_players(number_of_players, strategies)
             self.create_dealer()
         self.dealer.has_blackjack = False
+        print("balance is :",self.players[0].balance)
+        print("balance is :", self.players[1].balance)
         self.deal_initial_cards(number_of_players)
         return
 
-    def create_players(self,number_of_players,strategies):
+    def create_players(self, number_of_players, strategies):
         for i in range(number_of_players):
-            self.players.append(Player(i,strategies[i]))
+            self.players.append(Player(i, strategies[i],self.use_sidebet))
 
     def create_dealer(self):
         self.dealer = Dealer()
 
-    def deal_initial_cards(self,number_of_players):
+    def deal_initial_cards(self, number_of_players):
         number_of_initial_cards = 2
         for i in range(number_of_initial_cards):
             for j in range(number_of_players):
@@ -84,8 +87,16 @@ class BlackjackEnv(gym.Env):
                     self.dealer.dealer_hand.cards.append(self.shoe.draw_card())
                 elif i == 1:
                     self.players[j].hand.cards.append(self.shoe.draw_card())
-                    self.dealer.dealer_hand.draw_card_hidden(self.shoe.draw_card())
-                    self.players[j].hand.check_for_sidebet()
+                    self.dealer.dealer_hand.draw_card_hidden(
+                        self.shoe.draw_card())
+                    print("player",self.players[j].name, self.players[j].hand.cards)
+
+                    #self.players[j].balance -= self.ante
+
+                    if self.use_sidebet:
+                        self.players[j].balance -= self.ante
+                        print("balance after dealing :", self.players[j].balance)
+                        self.players[j].balance += (self.players[j].hand.check_for_sidebet() * self.ante ) +self.ante
                 else:
                     pass
 
@@ -93,9 +104,10 @@ class BlackjackEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def step(self,stand_on_17):
+    def step(self, stand_on_17):
+        players_busted = 0
         for player in self.players:
-            if player.hand.get_value() == 21 and len(player.hand.cards)  == 2:
+            if player.hand.get_value() == 21 and len(player.hand.cards) == 2:
                 player.has_blackjack = True
                 action = 0
             else:
@@ -109,9 +121,10 @@ class BlackjackEnv(gym.Env):
 
             assert self.action_space.contains(action)
             while action == 1:
-
                 player.hand.cards.append(self.shoe.draw_card())
-                if self.is_bust(player.hand.get_value()):
+                if self.is_bust(player.hand.get_value()) or player.hand.get_value() == 21:
+                    if self.is_bust(player.hand.get_value()):
+                        players_busted += 1
                     action = 0
                 else:
                     action = self.take_action()
@@ -122,10 +135,14 @@ class BlackjackEnv(gym.Env):
                 self.dealer.dealer_hand.cards) == 2:
             self.dealer.has_blackjack = True
         else:
-            while self.dealer.dealer_hand.get_value() < 17 and player.hand.get_value() <= 21:
+            while self.dealer.dealer_hand.get_value() < 17 and players_busted< len(self.players):
                 self.dealer.dealer_hand.cards.append(self.shoe.draw_card())
+        # if self.dealer.dealer_hand.get_value() < 17:
+        #     print("")
 
-        self.reward.determine_reward(self.players,self.dealer)
+        self.reward.determine_reward(self.players, self.dealer)
+        print(self.players[0].last_reward)
+        print(self.players[1].last_reward)
 
     def take_action(self):
         action = self.action_space.sample()
@@ -143,23 +160,23 @@ class BlackjackEnv(gym.Env):
         else:
             return False
 
-    def result(self,result_type):
+    def result(self, result_type):
         for player in self.players:
             if result_type == "individual":
                 print(f"player{player.name} last result : "
                       f"{player.hand.get_value()} vs"
                       f" {self.dealer.dealer_hand.get_value()}"
-                      f" {player.last_reward}")
+                      f" {player.last_reward} | Final Balance:"
+                      f" {player.balance}|")
+
                 print("Round ended.\n")
 
             elif result_type == "summary":
-                print(f"player{player.name} last result : "
-                                        f"{player.reward.final_result()} |"
-                      f"Final Balance: {player.reward.rewardbalance}|"
+                print(f"player{player.name}: "
+                      f"{player.final_result()} |"
+                      f"Final Balance: {player.balance}|"
                       f" Strategy: {player.strategy}|")
                 print("Game finished.\n")
 
             else:
                 raise NotImplementedError
-
-
