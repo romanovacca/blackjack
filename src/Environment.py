@@ -91,7 +91,7 @@ class BlackjackEnv(gym.Env):
                         self.shoe.draw_card())
                     print("player",self.players[j].name, self.players[j].hand.cards)
 
-                    #self.players[j].balance -= self.ante
+                    self.players[j].balance -= self.ante
 
                     if self.use_sidebet:
                         self.players[j].balance -= self.ante

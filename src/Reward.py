@@ -13,38 +13,38 @@ class Rewardmechanism:
                 if self.is_bust(player.hand.value):
                     player.losses += 1
                     player.last_reward = "loss"
-                    player.balance -= self.minimum_bet_multiplier
+                    #player.balance -= self.minimum_bet_multiplier
                     #player.balance += player.hand.sidebet_won_value
                 elif self.is_bust(dealer.dealer_hand.value):
                     player.wins += 1
                     player.last_reward = "win"
-                    player.balance += self.minimum_bet_multiplier
+                    player.balance += (1 * self.minimum_bet_multiplier) + 1
                     #player.balance += player.hand.sidebet_won_value
                 elif player.hand.value > dealer.dealer_hand.value:
                     player.wins += 1
                     player.last_reward = "win"
-                    player.balance += self.minimum_bet_multiplier
+                    player.balance += (1 * self.minimum_bet_multiplier) + 1
                     #player.balance += player.hand.sidebet_won_value
                 elif player.hand.value < dealer.dealer_hand.value:
                     player.losses += 1
                     player.last_reward = "loss"
-                    player.balance -= self.minimum_bet_multiplier
+                    #player.balance -= self.minimum_bet_multiplier
                     #player.balance += player.hand.sidebet_won_value
                 else:
                     player.draws += 1
-                    player.last_reward = "draw"
-                    #player.balance += player.hand.sidebet_won_value
+                    player.last_reward = "drawx"
+                    player.balance += 1
             else:
                 if dealer.has_blackjack:
                     player.draws += 1
-                    player.last_reward = "draw"
+                    player.last_reward = "drawy"
                     dealer.has_blackjack = False
-                    #player.balance += player.hand.sidebet_won_value
+                    player.balance += 1
                 else:
                     player.wins += 1
                     player.last_reward = "Win BJ" +str(player.name)
                     player.has_blackjack = False
-                    player.balance += 1.5 * self.minimum_bet_multiplier
+                    player.balance += (1.5 * self.minimum_bet_multiplier) + 1
                     #player.balance += player.hand.sidebet_won_value
 
         #player.balance += player.hand.sidebet_won_value

@@ -9,7 +9,7 @@ class Player:
         self.wins = 0
         self.losses = 0
         self.draws = 0
-        self.balance = 10
+        self.balance = 0
         self.name = i
         self.has_blackjack = False
         self.hand = Hand(use_sidebet)
