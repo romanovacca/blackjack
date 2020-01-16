@@ -9,32 +9,10 @@ from src.Reward import Rewardmechanism
 
 
 class BlackjackEnv(gym.Env):
-    """Simple blackjack environment
-    Blackjack is a card game where the goal is to obtain cards that sum to as
-    near as possible to 21 without going over.  They're playing against a fixed
-    dealer.
-    Face cards (Jack, Queen, King) have point value 10.
-    Aces can either count as 11 or 1, and it's called 'usable' at 11.
-    This game is placed with an infinite deck (or with replacement).
-    The game starts with each (player and dealer) having one face up and one
-    face down card.
-    The player can request additional cards (hit=1) until they decide to stop
-    (stick=0) or exceed 21 (bust).
-    After the player sticks, the dealer reveals their facedown card, and draws
-    until their sum is 17 or greater.  If the dealer goes bust the player wins.
-    If neither player nor dealer busts, the outcome (win, lose, draw) is
-    decided by whose sum is closer to 21.  The reward for winning is +1,
-    drawing is 0, and losing is -1.
-    The observation of a 3-tuple of: the players current sum,
-    the dealer's one showing card (1-10 where 1 is ace),
-    and whether or not the player holds a usable ace (0 or 1).
-    This environment corresponds to the version of the blackjack problem
-    described in Example 5.1 in Reinforcement Learning: An Introduction
-    by Sutton and Barto.
-    http://incompleteideas.net/book/the-book-2nd.html
+    """ Blackjack environment
     """
 
-    def __init__(self,ante, use_sidebet):
+    def __init__(self,env_players):
         self.logger = Customlogger(__name__)
         self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Tuple((
@@ -44,14 +22,12 @@ class BlackjackEnv(gym.Env):
         self.seed()
         self.shoe = Shoe()
         self.cutting_card_showed = self.shoe.cutting_card_shown
+        self.env_players = env_players
         self.players = []
         self.reward = Rewardmechanism()
-        self.ante = ante
-        self.use_sidebet = use_sidebet
 
     def reset(self, i_episode, number_of_players, strategies):
-        print("\n")
-        print(f"Starting iteration number {i_episode}")
+        #print(f"Starting iteration number {i_episode}")
         try:
             assert number_of_players >= 1
         except AssertionError as e:
@@ -69,9 +45,12 @@ class BlackjackEnv(gym.Env):
         self.deal_initial_cards(number_of_players)
         return
 
-    def create_players(self, number_of_players, strategies):
-        for i in range(number_of_players):
-            self.players.append(Player(i, strategies[i],self.use_sidebet))
+    def create_players(self):
+        for person in self.env_players:
+            self.players.append(Player(person["name"],
+                                       person["ante"],
+                                       person["use_sidebet"],
+                                       person["sidebet_ante"]))
 
     def create_dealer(self):
         self.dealer = Dealer()
@@ -91,12 +70,13 @@ class BlackjackEnv(gym.Env):
                         self.shoe.draw_card())
                     print("player",self.players[j].name, self.players[j].hand.cards)
 
-                    self.players[j].balance -= self.ante
+                    self.players[j].balance -= self.players[j].ante
 
-                    if self.use_sidebet:
-                        self.players[j].balance -= self.ante
+                    if self.players[j].use_sidebet:
+                        self.players[j].balance -= self.players[j].sidebet_size
                         print("balance after dealing :", self.players[j].balance)
-                        self.players[j].balance += (self.players[j].hand.check_for_sidebet() * self.ante ) +self.ante
+                        self.players[j].balance += (self.players[
+                                                        j].hand.check_for_sidebet())
                 else:
                     pass
 
@@ -137,12 +117,9 @@ class BlackjackEnv(gym.Env):
         else:
             while self.dealer.dealer_hand.get_value() < 17 and players_busted< len(self.players):
                 self.dealer.dealer_hand.cards.append(self.shoe.draw_card())
-        # if self.dealer.dealer_hand.get_value() < 17:
-        #     print("")
-
-        self.reward.determine_reward(self.players, self.dealer)
-        print(self.players[0].last_reward)
-        print(self.players[1].last_reward)
+        for player in self.players:
+            self.reward.determine_reward(player, self.dealer)
+            #print(self.players[j].last_reward)
 
     def take_action(self):
         action = self.action_space.sample()
@@ -174,8 +151,7 @@ class BlackjackEnv(gym.Env):
             elif result_type == "summary":
                 print(f"player{player.name}: "
                       f"{player.final_result()} |"
-                      f"Final Balance: {player.balance}|"
-                      f" Strategy: {player.strategy}|")
+                      f"Final Balance: {player.balance}")
                 print("Game finished.\n")
 
             else:

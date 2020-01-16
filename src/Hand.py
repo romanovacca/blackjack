@@ -3,12 +3,13 @@ from src.Sidebets import Sidebet
 
 
 class Hand:
-    def __init__(self, use_sidebet):
+    def __init__(self, use_sidebet, sidebet_size):
         self.logger = Customlogger(__name__)
         self.cards = []
         self.hidden_dealer_card = None
         self.use_sidebet = use_sidebet
-        self.sidebet = Sidebet()
+        if self.use_sidebet:
+            self.sidebet = Sidebet(sidebet_size)
 
     def draw_card_hidden(self, card):
         self.hidden_dealer_card = card
